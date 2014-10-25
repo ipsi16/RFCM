@@ -2,6 +2,7 @@ package clustering.rfcm;
 
 import java.util.ArrayList;
 
+
 public class DataPoint {
 	public ArrayList<Float> point;
 	public static int dim ;
@@ -52,5 +53,15 @@ public class DataPoint {
 		return distance;
 	}
 	
-	
+	public static DataPoint copyDataPoint(DataPoint orgDataPoint)
+	{
+		if(orgDataPoint==null) return null;
+		DataPoint copy = new DataPoint();
+		for(Float dim: orgDataPoint.point)
+		{
+			copy.point.add(dim);
+			
+		}
+		return copy;
+	}
 }

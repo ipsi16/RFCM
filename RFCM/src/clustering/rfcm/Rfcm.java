@@ -5,20 +5,20 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 
-import clustering.rfcm.Cluster;
-import clustering.rfcm.Cluster;
 
-public class rfcm1 {
+public class Rfcm
+{
    
 	public static final int n = 500;
 	public static final int noOfClusters = 5;
-	public static final float epsolon = 0.01f;
+	public static final float epsolon = 0.5f;
 	public static final float del =0.3f;
 	public static final float wlower = 0.7f;
 	public static final float wupper = 1 - wlower;
 	public static final int m = 2;	
 	public static ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 	public static ArrayList<DataPoint> datapoints = new ArrayList<DataPoint>();
+	public static ArrayList<DataPoint> orgDatapoints = new ArrayList<DataPoint>();
 	public static float[][] membership = new float[noOfClusters][n];
 	public static float[][] oldMembership = new float[noOfClusters][n];
 	public static int[][] pointCount = new int[noOfClusters][3];
@@ -40,6 +40,9 @@ public class rfcm1 {
 			return;
 		}
 		
+		//normalize datapoints
+		normalise();
+		
 		//allocate cluster centroids			
 		for(int i=0;i < noOfClusters; i++)
 		{
@@ -58,23 +61,24 @@ public class rfcm1 {
 			determineNewCentroid();
 			calculateMembership();
 			allocateClusters();
-		}		
+		}
+		
 		//Final Output
               System.out.println("Cluster Output : \n");
                 for(int i=0;i<noOfClusters;i++)
                 {
                     System.out.print("Cluster "+(i+1)+" : ");
-                    for(int j=0;j<datapoints.size();j++)
+                    for(int j=0;j<orgDatapoints.size();j++)
                     {
                         if(membership[i][j]!=0)
                         {
-                       System.out.print(membership[i][j]*100+"% of ");
-                            System.out.print("(");
+                       System.out.print(membership[i][j]*100+"% of "+orgDatapoints.get(j).point+"\t");
+                            /*System.out.print("(");
                             for(int k=0; k<datapoints.get(j).point.size();k++)
                             {
                                 System.out.print(datapoints.get(j).point.get(k)+ " ");
                                         }
-                            System.out.print(")  ");
+                            System.out.print(")  ");*/
                         }        
                   
                     }
@@ -111,6 +115,7 @@ public class rfcm1 {
 				}
 				DataPoint datapoint = new DataPoint(dim);
 				datapoints.add(datapoint);
+				orgDatapoints.add(DataPoint.copyDataPoint(datapoint));
 				dataLine = breader.readLine();
 				
 			}
@@ -178,16 +183,7 @@ public class rfcm1 {
 				}
 				
 			}
-                   //     System.out.println();
 		}
-                /*
-                System.out.println("Membership values after calculation: ");
-                for(int i=0;i<noOfClusters;i++)
-                {
-                    for(int j=0;j<datapoints.size();j++)
-                        System.out.print(membership[i][j]+ " ");
-                    System.out.println();
-                }*/
                  
 	}
 
@@ -336,5 +332,47 @@ public class rfcm1 {
 			}
 		}
 		return true;
+	}
+	
+	public static void normalise()				//standard normalization between range 0 - 1
+	{
+		//arrays that store max and min value for every ith dimension
+		float[] max,min;
+		max = new float[datapoints.get(0).point.size()];
+		min = new float[datapoints.get(0).point.size()];
+		
+		//initialising max and min array to dimensions of first datapoint
+		for(int i = 0; i<datapoints.get(0).point.size();i++)
+		{
+			max[i] = datapoints.get(0).point.get(i).floatValue(); 
+			min[i] = datapoints.get(0).point.get(i).floatValue(); 
+		}
+			
+		//finding max and min values for each dimension 
+		for(DataPoint dp : datapoints)
+		{
+			ArrayList<Float> currPoint = dp.point;
+			for(int i =0 ; i<currPoint.size();i++)
+			{
+				if(currPoint.get(i)>max[i])
+				{
+					max[i]=currPoint.get(i);
+				}
+				else if(currPoint.get(i)<min[i])
+				{
+					min[i]=currPoint.get(i);
+				}
+			}			
+		}
+		
+		//applying normalization formula new value = (oldValue - oldMinVal)/(oldMaxVal - oldMinVal)
+		for(DataPoint dp : datapoints)
+		{
+			ArrayList<Float> currPoint = dp.point;
+			for(int i =0 ; i<currPoint.size();i++)
+			{
+				currPoint.set(i, (currPoint.get(i)-min[i])/(max[i]-min[i]));
+			}
+		}
 	}
 }
