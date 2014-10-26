@@ -1,6 +1,8 @@
 
 package clustering.rfcm;
 
+import indexes.DBIndex;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -64,34 +66,35 @@ public class Rfcm
 		}
 		
 		//Final Output
-              System.out.println("Cluster Output : \n");
-                for(int i=0;i<noOfClusters;i++)
-                {
-                    System.out.print("Cluster "+(i+1)+" : ");
-                    for(int j=0;j<orgDatapoints.size();j++)
+        System.out.println("Cluster Output : \n");
+        for(int i=0;i<noOfClusters;i++)
+        {
+             System.out.print("Cluster "+(i+1)+" : ");
+             for(int j=0;j<orgDatapoints.size();j++)
+             {
+                    if(membership[i][j]!=0)
                     {
-                        if(membership[i][j]!=0)
-                        {
                        System.out.print(membership[i][j]*100+"% of "+orgDatapoints.get(j).point+"\t");
-                            /*System.out.print("(");
-                            for(int k=0; k<datapoints.get(j).point.size();k++)
-                            {
-                                System.out.print(datapoints.get(j).point.get(k)+ " ");
-                                        }
-                            System.out.print(")  ");*/
-                        }        
+                            
+                     }        
                   
-                    }
-                    System.out.println();
-	}
-                System.out.println();
+               }
+               System.out.println();
+         }
+         System.out.println();
 	
-                 System.out.println("Cluster  Low   Upper   Total");
-                 for(int i=0;i<noOfClusters;i++)
-                {
+         System.out.println("Cluster  Low   Upper   Total");
+         for(int i=0;i<noOfClusters;i++)
+         {
                     System.out.println((i+1)+"\t"+pointCount[i][0]+"\t"+ pointCount[i][1]+"\t"+pointCount[i][2]);
                    
-                }
+         }
+         
+         allotPointsToClusters();
+                  
+         //DB Index
+         DBIndex dbindex = new DBIndex(clusters);
+         System.out.println(dbindex.returnIndex());
 	}
 	
 	
@@ -151,13 +154,12 @@ public class Rfcm
 				membership[i][j]=-1;
 			}
 		}
-				 //System.out.println("Distance Matrix : \n");
+				
 		for(int i = 0; i < noOfClusters; i++)
 		{
 			for(int j=0; j<datapoints.size();j++)
 			{
 				float dij = DataPoint.distanceBetween(clusters.get(i).centroid,datapoints.get(j) );
-				//System.out.print(dij+"  ");
 				
 				if(dij==0.0f)
 				{
@@ -216,8 +218,7 @@ public class Rfcm
 			
                         
 			if(membership[maxPos][i]-membership[max2Pos][i]>del)
-			{
-                                //System.out.println("i="+i);
+			{                 
 				membership[maxPos][i]= 1;
 				for(int k=0;k<noOfClusters;k++)
 				{
@@ -373,6 +374,26 @@ public class Rfcm
 			{
 				currPoint.set(i, (currPoint.get(i)-min[i])/(max[i]-min[i]));
 			}
+		}
+	}
+	
+	public static void allotPointsToClusters()
+	{
+		for(int j=0;j<datapoints.size();j++)		//For each datapoint
+		{
+			int maxPos=0;							//Finding cluster to which the jth cluster has maximum membership
+			for(int i=0; i<noOfClusters;i++)
+			{
+				if(membership[i][j]==1.0f)
+				{						
+					clusters.get(i).memberDataPoints.add(datapoints.get(j));
+					break;
+				}
+				if(membership[i][j]>membership[maxPos][j])
+					maxPos = i;
+			}
+			
+			clusters.get(maxPos).memberDataPoints.add(datapoints.get(j));	//adding datapoint to cluster with max membership
 		}
 	}
 }
