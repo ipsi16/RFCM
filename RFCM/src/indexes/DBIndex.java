@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import clustering.rfcm.Cluster;
+import clustering.rfcm.DataPoint;
 
 public class DBIndex 
 {
